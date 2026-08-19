@@ -1,4 +1,3 @@
-
 # ---------------------------------------------------------
 # Default VPC
 # ---------------------------------------------------------
@@ -7,11 +6,42 @@ data "aws_vpc" "default" {
 }
 
 # ---------------------------------------------------------
-# Existing Security Group (database-secgroup)
+# New Security Group (HTTP + SSH)
 # ---------------------------------------------------------
-data "aws_security_group" "web_sg" {
-  name   = "database-secgroup"
-  vpc_id = data.aws_vpc.default.id
+resource "aws_security_group" "web_sg" {
+  name        = "database-secgroup"
+  description = "Allow HTTP and SSH"
+  vpc_id      = data.aws_vpc.default.id
+
+  # Allow HTTP (port 80)
+  ingress {
+    description = "Allow HTTP"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Allow SSH (port 22)
+  ingress {
+    description = "Allow SSH"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Allow all outbound traffic
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "database-secgroup"
+  }
 }
 
 # ---------------------------------------------------------
@@ -20,7 +50,7 @@ data "aws_security_group" "web_sg" {
 resource "aws_instance" "web" {
   ami                    = "ami-0b6d9d3d33ba97d99"   # Ubuntu AMI (us-east-1)
   instance_type          = var.instance_type
-  vpc_security_group_ids = [data.aws_security_group.web_sg.id]
+  vpc_security_group_ids = [aws_security_group.web_sg.id]
   key_name               = "my-password"
 
   # -------------------------------------------------------
@@ -41,7 +71,7 @@ resource "aws_instance" "web" {
     git clone "$REPO_URL"
 
     # Copy website files to Apache document root
-    cp -r /tmp/<YOUR_REPO>/website/* /var/www/html/
+    cp -r /tmp/RiteClick-Terraform-website/website/* /var/www/html/
 
     # Set permissions
     chown -R www-data:www-data /var/www/html
@@ -53,3 +83,15 @@ resource "aws_instance" "web" {
   }
 }
 
+# ---------------------------------------------------------
+# Outputs
+# ---------------------------------------------------------
+output "instance_public_ip" {
+  description = "Public IP of the web server"
+  value       = aws_instance.web.public_ip
+}
+
+output "instance_public_dns" {
+  description = "Public DNS of the web server"
+  value       = aws_instance.web.public_dns
+}
