@@ -8,8 +8,8 @@ data "aws_vpc" "default" {
 # ---------------------------------------------------------
 # New Security Group (HTTP + SSH)
 # ---------------------------------------------------------
-resource "aws_security_group" "web_sg" {
-  name        = "database-secgroup"
+resource "aws_security_group" "terraform_sec_group" {
+  name        = "terraform-sec-group"
   description = "Allow HTTP and SSH"
   vpc_id      = data.aws_vpc.default.id
 
@@ -40,7 +40,7 @@ resource "aws_security_group" "web_sg" {
   }
 
   tags = {
-    Name = "database-secgroup"
+    Name = "terraform-sec-group"
   }
 }
 
@@ -50,7 +50,7 @@ resource "aws_security_group" "web_sg" {
 resource "aws_instance" "web" {
   ami                    = "ami-0b6d9d3d33ba97d99"   # Ubuntu AMI (us-east-1)
   instance_type          = var.instance_type
-  vpc_security_group_ids = [aws_security_group.web_sg.id]
+  vpc_security_group_ids = [aws_security_group.terraform_sec_group.id]
   key_name               = "my-password"
 
   # -------------------------------------------------------
@@ -79,7 +79,7 @@ resource "aws_instance" "web" {
   EOF
 
   tags = {
-    Name = "rite-click-web"
+    Name = "gym-website"
   }
 }
 
