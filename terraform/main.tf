@@ -1,17 +1,3 @@
-terraform {
-  required_version = ">= 1.5.0"
-
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-  }
-}
-
-provider "aws" {
-  region = var.region
-}
 
 # ---------------------------------------------------------
 # Default VPC
@@ -67,15 +53,3 @@ resource "aws_instance" "web" {
   }
 }
 
-# ---------------------------------------------------------
-# Outputs
-# ---------------------------------------------------------
-output "instance_public_ip" {
-  description = "Public IP of the web server"
-  value       = aws_instance.web.public_ip
-}
-
-output "instance_public_dns" {
-  description = "Public DNS of the web server"
-  value       = aws_instance.web.public_dns
-}
